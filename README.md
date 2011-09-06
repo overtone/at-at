@@ -35,7 +35,7 @@ Simple ahead-of-time function scheduler. Allows you to schedule the execution of
 
 First pull in the lib:
 
-    (use 'at-at)
+    (use 'overtone.at-at)
 
 Next, schedule the function of your dreams. Here we schedule the function to execute in 1000 ms from now (i.e. 1 second):
 

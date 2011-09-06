@@ -1,5 +1,5 @@
-(ns at-at
-  (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit)))
+(ns overtone.at-at
+  (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit]))
 
 (defn- cpu-count
   "Get the number of CPUs on this machine."
