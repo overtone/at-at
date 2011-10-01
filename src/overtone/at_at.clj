@@ -6,7 +6,8 @@
   []
   (.availableProcessors (Runtime/getRuntime)))
 
-(defn- mk-pool*
+(defn- sched-thread-pool
+  "Create a new scheduled thread pool containing num-threads threads."
   [num-threads]
   (ScheduledThreadPoolExecutor. num-threads))
 
@@ -15,7 +16,7 @@
   events for. Pool size defaults to the cpu count + 2"
   ([] (mk-pool (+ 2 (cpu-count))))
   ([num-threads]
-     (atom (mk-pool* num-threads))))
+     (atom (sched-thread-pool num-threads))))
 
 (defonce default-pool* (mk-pool))
 
@@ -35,7 +36,7 @@
 (defn- stop-and-reset-pool
   [pool shutdown-immediately?]
   (let [num-threads (.getCorePoolSize pool)
-        new-pool (mk-pool* num-threads)]
+        new-pool (sched-thread-pool num-threads)]
     (if shutdown-immediately?
       (.shutdownNow pool)
       (.shutdown pool))
