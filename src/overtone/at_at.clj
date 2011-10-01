@@ -85,5 +85,5 @@
   ([ms-time fun pool]
      (let [delay-time (- ms-time (now))]
        (if (<= delay-time 0)
-         (fun)
+         (.execute @pool fun)
          (.schedule @pool fun (long delay-time) TimeUnit/MILLISECONDS)))))
