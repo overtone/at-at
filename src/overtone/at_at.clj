@@ -22,7 +22,7 @@
 (defn every
   "Calls fun every ms-period, and takes an optional initial-delay for the first
   call in ms. Default pool is used if none explicity specified. Returns a
-  scheduled-fn which may be cancelled with stop-scheduled-fn"
+  scheduled-fn which may be cancelled with cancel"
   ([ms-period fun] (every ms-period fun 0))
   ([ms-period fun initial-delay-or-pool] (if (number? initial-delay-or-pool)
                                            (every ms-period fun initial-delay-or-pool default-pool*)
