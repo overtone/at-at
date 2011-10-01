@@ -17,7 +17,7 @@
   ([num-threads]
      (atom (mk-pool* num-threads))))
 
-(def default-pool* (mk-pool))
+(defonce default-pool* (mk-pool))
 
 (defn every
   "Calls fun every ms-period, and takes an optional initial-delay for the first
