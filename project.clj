@@ -1,3 +1,3 @@
-(defproject overtone/at-at "0.3.0-SNAPSHOT"
+(defproject overtone/at-at "1.0.0-SNAPSHOT"
   :description "Ahead-of-time function scheduler"
   :dependencies [[clojure "1.3.0"]])
