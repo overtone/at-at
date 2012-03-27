@@ -18,17 +18,12 @@
   ([num-threads]
      (atom (sched-thread-pool num-threads))))
 
-(defonce default-pool* (mk-pool))
-
 (defn every
-  "Calls fun every ms-period, and takes an optional initial-delay for the first
-  call in ms. Default pool is used if none explicity specified. Returns a
-  scheduled-fn which may be cancelled with cancel"
-  ([ms-period fun] (every ms-period fun 0))
-  ([ms-period fun initial-delay-or-pool] (if (number? initial-delay-or-pool)
-                                           (every ms-period fun initial-delay-or-pool default-pool*)
-                                           (every ms-period fun 0 initial-delay-or-pool)))
-  ([ms-period fun initial-delay pool]
+  "Calls fun every ms-period, and takes an optional initial-delay for
+  the first call in ms.  Returns a scheduled-fn which may be cancelled
+  with cancel"
+  ([pool ms-period fun] (every pool ms-period fun 0))
+  ([pool ms-period fun initial-delay]
      (let [initial-delay (long initial-delay)
            ms-period     (long ms-period)]
        (.scheduleAtFixedRate @pool fun initial-delay ms-period TimeUnit/MILLISECONDS))))
@@ -44,21 +39,15 @@
     new-pool))
 
 (defn stop-and-reset-pool!
-  "Shuts down a given pool (passed in as an atom) either immediately or not
-  depending on whether the optional shutdown-immediately? param is used. The
-  pool is then reset to a fresh new pool preserving the original size. If called
-  with no params, the default pool is used.
+  "Shuts down a given pool (passed in as an atom) either immediately
+  or not depending on whether the optional shutdown-immediately? param
+  is used. The pool is then reset to a fresh new pool preserving the
+  original size. If called with no params, the default pool is used.
 
   Example usage:
-  (stop-and-reset-pool!) ;=> default pool is reset gracefullly
-  (stop-and-reset-pool! true) ;=> default pool is reset immediately
-  (stop-and-reset-pool! pool) ;=> pool is reset gracefully
+  (stop-and-reset-pool! pool)      ;=> pool is reset gracefullly
   (stop-and-reset-pool! pool true) ;=> pool is reset immediately"
-  ([] (stop-and-reset-pool! default-pool* false))
-  ([pool-or-bool] (if (or (= true pool-or-bool)
-                          (= false pool-or-bool))
-                    (stop-and-reset-pool! default-pool* pool-or-bool)
-                    (stop-and-reset-pool! pool-or-bool false)))
+  ([pool] (stop-and-reset-pool! pool false))
   ([pool shutdown-immediately?]
      (swap! pool stop-and-reset-pool shutdown-immediately?)))
 
@@ -77,14 +66,26 @@
 
 (defn at
   "Schedules fun to be executed at ms-time (in milliseconds). Executes
-  immediately if ms-time is in the past. Default pool is used if none
-  explicitly. Use (now) to get the current time in ms.
+  immediately if ms-time is in the past.  Use (now) to get the current
+  time in ms.
 
   Example usage:
-  (at (+ 1000 (now)) #(println \"hello from the past\")) ;=> prints 1s from now"
-  ([ms-time fun] (at ms-time fun default-pool*))
-  ([ms-time fun pool]
+  (at (+ 1000 (now)) #(println \"hello from the past\")) ;=> prints 1s
+                                                         ;   from now"
+  ([pool ms-time fun]
      (let [delay-time (- ms-time (now))]
        (if (<= delay-time 0)
          (.execute @pool fun)
          (.schedule @pool fun (long delay-time) TimeUnit/MILLISECONDS)))))
+
+(defn after
+  "Schedules fun to be executed after delay-ms (in milliseconds) from
+  now. Executes immediately if ms-time is 0 or negative.
+
+  Example usage:
+  (after 1000 #(println \"hello from the past\")) ;=> prints 1s
+                                                  ;   from now"
+  ([pool delay-ms fun]
+     (if (<= delay-ms 0)
+       (.execute @pool fun)
+       (.schedule @pool fun (long delay-ms) TimeUnit/MILLISECONDS))))
