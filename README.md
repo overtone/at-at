@@ -81,6 +81,14 @@ You may forcefully reset the pool using the `:kill` strategy:
 
 `at-at` keeps an eye on all the tasks you've scheduled. You can get a set of the current jobs (both scheduled and recurring) using `scheduled-jobs` and you can pretty-print a list of these job using `show-schedule`. The ids shown in the output of `show-schedule` are also accepted in `kill` and `stop`, provided you also specify the associated pool. See the `kill` and `stop` docstrings for more information.
 
+    (def tp (mk-pool))
+    (after 10000 #(println "hello") tp :desc "Hello printer")
+    (every 5000 #(println "I am still alive!") tp :desc "Alive task")
+    (show-schedule tp)
+
+      [6][RECUR] created: Thu 12:03:35s, period: 5000ms,  desc: "Alive task
+      [5][SCHED] created: Thu 12:03:32s, starts at: Thu 12:03:42s, desc: "Hello printer
+
 ### Install
 
 Fetch at-at from github: https://github.com/overtone/at-at or pull from clojars: `[overtone/at-at "X.Y.Z"]`
