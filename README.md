@@ -55,7 +55,7 @@ Another way of achieving the same result is to use `after` which takes a delaty 
 
 You can also schedule functions to occur periodically. Here we schedule the function to execute every second:
 
-    (every 1000 my-pool #(println "I am cool!"))
+    (every 1000 #(println "I am cool!") my-pool)
 
 This returns a shceduled-fn which may easily be stopped `stop`:
 
