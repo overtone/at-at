@@ -1,5 +1,6 @@
 (ns overtone.at-at
-  (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit]))
+  (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit ThreadPoolExecutor]
+           [java.io Writer]))
 
 (defrecord PoolInfo [thread-pool jobs-ref id-count-ref])
 (defrecord MutablePool [pool-ref stop-delayed? stop-periodic?])
@@ -12,19 +13,19 @@
   (.format (java.text.SimpleDateFormat. "EEE hh':'mm':'ss's'") date))
 
 (defmethod print-method PoolInfo
-  [obj w]
+  [obj ^Writer w]
   (.write w (str "#<PoolInfo: " (:thread-pool obj) " "
                  (count @(:jobs-ref obj)) " jobs>")))
 
 (defmethod print-method MutablePool
-  [obj w]
+  [obj ^Writer w]
   (.write w (str "#<MutablePool - "
                  "jobs: "(count @(:jobs-ref @(:pool-ref obj)))
                  ", stop-delayed? " (:stop-delayed? obj)
                  ", stop-periodic? " (:stop-periodic? obj) ">")))
 
 (defmethod print-method RecurringJob
-  [obj w]
+  [obj ^Writer w]
   (.write w (str "#<RecurringJob id: " (:id obj)
                  ", created-at: " (format-date (:created-at obj))
                  ", ms-period: " (:ms-period obj)
@@ -33,7 +34,7 @@
                  ", scheduled? " @(:scheduled? obj) ">")))
 
 (defmethod print-method ScheduledJob
-  [obj w]
+  [obj ^Writer w]
   (.write w (str "#<ScheduledJob id: " (:id obj)
                  ", created-at: " (format-date (:created-at obj))
                  ", initial-delay: " (:initial-delay obj)
@@ -62,7 +63,7 @@
   [pool-info fun initial-delay ms-period desc]
   (let [initial-delay (long initial-delay)
         ms-period     (long ms-period)
-        t-pool        (:thread-pool pool-info)
+        ^ScheduledThreadPoolExecutor t-pool (:thread-pool pool-info)
         job           (.scheduleAtFixedRate t-pool
                                             fun
                                             initial-delay
@@ -100,10 +101,10 @@
   specified initial-delay. Returns a ScheduledJob record."
   [pool-info fun initial-delay desc]
   (let [initial-delay (long initial-delay)
-        t-pool        (:thread-pool pool-info)
+        ^ScheduledThreadPoolExecutor t-pool (:thread-pool pool-info)
         jobs-ref      (:jobs-ref pool-info)
         id-prom       (promise)
-        fun           (wrap-fun-to-remove-itself fun jobs-ref id-prom)
+        ^Callable fun (wrap-fun-to-remove-itself fun jobs-ref id-prom)
         job           (.schedule t-pool fun initial-delay TimeUnit/MILLISECONDS)
         start-time    (System/currentTimeMillis)
         id-count-ref  (:id-count-ref pool-info)
@@ -123,13 +124,13 @@
 
 (defn- shutdown-pool-now!
   "Shut the pool down NOW!"
-  [t-pool]
+  [^ScheduledThreadPoolExecutor t-pool]
   (.shutdownNow t-pool))
 
 (defn- shutdown-pool-gracefully!
   "Shut the pool down gracefully - waits until all previously
   submitted jobs have completed"
-  [t-pool]
+  [^ScheduledThreadPoolExecutor t-pool]
   (.shutdown t-pool))
 
 (defn- mk-sched-thread-pool
@@ -233,7 +234,8 @@
   (when-not (some #{strategy} #{:stop :kill})
     (throw (Exception. (str "Error: unknown pool stopping strategy: " strategy ". Expecting one of :stop or :kill"))))
   (let [pool-ref      (:pool-ref pool)
-        num-threads   (.getCorePoolSize (:thread-pool @pool-ref))
+        ^ThreadPoolExecutor tp-executor (:thread-pool @pool-ref)
+        num-threads   (.getCorePoolSize tp-executor)
         new-t-pool    (mk-sched-thread-pool num-threads (:stop-delayed? pool) (:stop-periodic? pool))
         new-pool-info (mk-pool-info new-t-pool)
         old-pool-info (switch! pool-ref new-pool-info)]
