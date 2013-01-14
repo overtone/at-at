@@ -309,14 +309,14 @@
        "[RECUR] created: " (format-date (:created-at job))
        (format-start-time (+ (:created-at job) (:initial-delay job)))
        ", period: " (:ms-period job) "ms"
-       ",  desc: \""(:desc job))) "\""
+       ",  desc: \""(:desc job) "\""))
 
 (defn- scheduled-job-string
   [job]
   (str "[" (:id job) "]"
        "[SCHED] created: " (format-date (:created-at job))
        (format-start-time (+ (:created-at job) (:initial-delay job)))
-       ", desc: \"" (:desc job))) "\""
+       ", desc: \"" (:desc job) "\""))
 
 (defn- job-string
   [job]
