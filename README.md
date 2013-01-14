@@ -63,9 +63,16 @@ This returns a shceduled-fn which may easily be stopped `stop`:
 
 Or more forcefully killed with `kill`.
 
-Finally, it's also possible to start a periodic repeating fn with an inital delay:
+It's also possible to start a periodic repeating fn with an inital delay:
 
     (every 1000 #(println "I am cool!") my-pool :initial-delay 2000)
+
+Finally, you can also schedule tasks for a fixed delay (vs a rate):
+
+    (every 1000 #(println "I am cool!") my-pool :fixed-delay true)
+
+This means that it will wait 1000 ms after the task is completed before 
+starting the next one.
 
 ### Resetting a pool.
 
@@ -102,6 +109,7 @@ at-at was extracted from the awesome music making wonder that is Overtone (http:
 
 * Sam Aaron
 * Jeff Rose
+* Michael Neale
 
 
 (Ascii art borrowed from http://www.sanitarium.net/jokes/getjoke.cgi?132)

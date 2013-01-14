@@ -56,19 +56,26 @@
   []
   (.availableProcessors (Runtime/getRuntime)))
 
-(defn- schedule-at-fixed-rate
+
+
+(defn- schedule-job
   "Schedule the fun to execute periodically in pool-info's pool with
   the specified initial-delay and ms-period. Returns a RecurringJob
   record."
-  [pool-info fun initial-delay ms-period desc]
+  [pool-info fun initial-delay ms-period desc fixed-delay]
   (let [initial-delay (long initial-delay)
         ms-period     (long ms-period)
         ^ScheduledThreadPoolExecutor t-pool (:thread-pool pool-info)
-        job           (.scheduleAtFixedRate t-pool
+        job           (if fixed-delay (.scheduleWithFixedDelay t-pool
                                             fun
                                             initial-delay
                                             ms-period
                                             TimeUnit/MILLISECONDS)
+                                        (.scheduleAtFixedRate t-pool
+                                            fun
+                                            initial-delay
+                                            ms-period
+                                            TimeUnit/MILLISECONDS))
         start-time    (System/currentTimeMillis)
         jobs-ref      (:jobs-ref pool-info)
         id-count-ref  (:id-count-ref pool-info)]
@@ -164,14 +171,15 @@
 (defn every
   "Calls fun every ms-period, and takes an optional initial-delay for
   the first call in ms.  Returns a scheduled-fn which may be cancelled
-  with cancel.
+  with cancel. fixed-delay: see ScheduledExecutorService#scheduleWithFixedDelay
 
   Default options are
-  {:initial-delay 0 :desc \"\"}"
-  [ms-period fun pool & {:keys [initial-delay desc]
+  {:initial-delay 0 :desc \"\" :fixed-delay false}"
+  [ms-period fun pool & {:keys [initial-delay desc fixed-delay]
                          :or {initial-delay 0
-                              desc ""}}]
-  (schedule-at-fixed-rate @(:pool-ref pool) fun initial-delay ms-period desc))
+                              desc ""
+                              fixed-delay false}}]
+  (schedule-job @(:pool-ref pool) fun initial-delay ms-period desc fixed-delay))
 
 (defn now
   "Return the current time in ms"
