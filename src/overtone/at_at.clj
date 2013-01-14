@@ -88,7 +88,6 @@
                                    job
                                    pool-info
                                    desc
-                                   interspaced?
                                    (atom true))]
        (commute jobs-ref assoc id job-info)
        job-info))))
