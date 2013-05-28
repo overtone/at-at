@@ -3,7 +3,7 @@
            [java.io Writer]))
 
 (defrecord PoolInfo [thread-pool jobs-ref id-count-ref])
-(defrecord MutablePool [pool-ref stop-delayed? stop-periodic?])
+(defrecord MutablePool [pool-atom])
 (defrecord RecurringJob [id created-at ms-period initial-delay job pool-info desc scheduled?])
 (defrecord ScheduledJob [id created-at initial-delay job pool-info desc scheduled?])
 
@@ -20,9 +20,8 @@
 (defmethod print-method MutablePool
   [obj ^Writer w]
   (.write w (str "#<MutablePool - "
-                 "jobs: "(count @(:jobs-ref @(:pool-ref obj)))
-                 ", stop-delayed? " (:stop-delayed? obj)
-                 ", stop-periodic? " (:stop-periodic? obj) ">")))
+                 "jobs: "(count @(:jobs-ref @(:pool-atom obj)))
+                 ">")))
 
 (defmethod print-method RecurringJob
   [obj ^Writer w]
@@ -131,22 +130,36 @@
 
 (defn- shutdown-pool-now!
   "Shut the pool down NOW!"
-  [^ScheduledThreadPoolExecutor t-pool]
-  (.shutdownNow t-pool))
+  [pool-info]
+  (.shutdownNow (:thread-pool pool-info))
+  (doseq [job (vals @(:jobs-ref pool-info))]
+    (reset! (:scheduled? job) false)))
 
 (defn- shutdown-pool-gracefully!
   "Shut the pool down gracefully - waits until all previously
   submitted jobs have completed"
-  [^ScheduledThreadPoolExecutor t-pool]
-  (.shutdown t-pool))
+  [pool-info]
+  (.shutdown (:thread-pool pool-info))
+  (let [jobs (vals @(:jobs-ref pool-info))]
+    (future
+      (loop [jobs jobs]
+        (doseq [job jobs]
+          (when (and @(:scheduled? job)
+                     (or
+                      (.isCancelled (:job job))
+                      (.isDone (:job job))))
+            (reset! (:scheduled? job) false)))
+
+        (when-let [jobs (filter (fn [j] @(:scheduled? j)) jobs)]
+          (Thread/sleep 500)
+          (when (seq jobs)
+            (recur jobs)))))))
 
 (defn- mk-sched-thread-pool
   "Create a new scheduled thread pool containing num-threads threads."
-  [num-threads stop-delayed? stop-periodic?]
+  [num-threads]
   (let [t-pool (ScheduledThreadPoolExecutor. num-threads)]
-    (doto t-pool
-      (.setExecuteExistingDelayedTasksAfterShutdownPolicy (not stop-delayed?))
-      (.setContinueExistingPeriodicTasksAfterShutdownPolicy (not stop-periodic?)))))
+    t-pool))
 
 (defn- mk-pool-info
   [t-pool]
@@ -155,18 +168,10 @@
 (defn mk-pool
   "Returns MutablePool record storing a mutable reference (atom) to a
   PoolInfo record which contains a newly created pool of threads to
-  schedule new events for. Pool size defaults to the cpu count + 2. It
-  is possible to modify the pool shutdown policy with the optional
-  keys :stop-delayed? and :stop-periodic which indicates whether the
-  pool should cancel all delayed or periodic jobs respectively on
-  shutdown."
+  schedule new events for. Pool size defaults to the cpu count + 2."
   [& {:keys [cpu-count stop-delayed? stop-periodic?]
-      :or {cpu-count (+ 2 (cpu-count))
-           stop-delayed? true
-           stop-periodic? true}}]
-  (MutablePool. (atom (mk-pool-info (mk-sched-thread-pool cpu-count stop-delayed? stop-periodic?)))
-                stop-delayed?
-                stop-periodic?))
+      :or {cpu-count (+ 2 (cpu-count))}}]
+  (MutablePool. (atom (mk-pool-info (mk-sched-thread-pool cpu-count)))))
 
 (defn every
   "Calls fun every ms-period, and takes an optional initial-delay for
@@ -178,7 +183,7 @@
   [ms-period fun pool & {:keys [initial-delay desc]
                          :or {initial-delay 0
                               desc ""}}]
-  (schedule-job @(:pool-ref pool) fun initial-delay ms-period desc false))
+  (schedule-job @(:pool-atom pool) fun initial-delay ms-period desc false))
 
 (defn interspaced
   "Calls fun repeatedly with an interspacing of ms-period, i.e. the next
@@ -192,7 +197,7 @@
   [ms-period fun pool & {:keys [initial-delay desc]
                          :or {initial-delay 0
                               desc ""}}]
-  (schedule-job @(:pool-ref pool) fun initial-delay ms-period desc true))
+  (schedule-job @(:pool-atom pool) fun initial-delay ms-period desc true))
 
 (defn now
   "Return the current time in ms"
@@ -211,7 +216,7 @@
   [ms-time fun pool & {:keys [desc]
                        :or {desc ""}}]
   (let [initial-delay (- ms-time (now))
-        pool-info  @(:pool-ref pool)]
+        pool-info  @(:pool-atom pool)]
     (schedule-at pool-info fun initial-delay desc)))
 
 (defn after
@@ -225,15 +230,14 @@
       :desc \"Message from the past\") ;=> prints 1s from now"
   [delay-ms fun pool & {:keys [desc]
                        :or {desc ""}}]
-  (let [pool-info  @(:pool-ref pool)]
+  (let [pool-info  @(:pool-atom pool)]
     (schedule-at pool-info fun delay-ms desc)))
 
 (defn- shutdown-pool!
   [pool-info strategy]
-  (let [t-pool (:thread-pool pool-info)]
-    (case strategy
-      :stop (shutdown-pool-gracefully! t-pool)
-      :kill (shutdown-pool-now! t-pool))))
+  (case strategy
+    :stop (shutdown-pool-gracefully! pool-info)
+    :kill (shutdown-pool-now! pool-info)))
 
 (defn stop-and-reset-pool!
   "Shuts down the threadpool of given MutablePool using the specified
@@ -254,12 +258,12 @@
            :or {strategy :stop}}]
   (when-not (some #{strategy} #{:stop :kill})
     (throw (Exception. (str "Error: unknown pool stopping strategy: " strategy ". Expecting one of :stop or :kill"))))
-  (let [pool-ref      (:pool-ref pool)
-        ^ThreadPoolExecutor tp-executor (:thread-pool @pool-ref)
+  (let [pool-atom      (:pool-atom pool)
+        ^ThreadPoolExecutor tp-executor (:thread-pool @pool-atom)
         num-threads   (.getCorePoolSize tp-executor)
-        new-t-pool    (mk-sched-thread-pool num-threads (:stop-delayed? pool) (:stop-periodic? pool))
+        new-t-pool    (mk-sched-thread-pool num-threads)
         new-pool-info (mk-pool-info new-t-pool)
-        old-pool-info (switch! pool-ref new-pool-info)]
+        old-pool-info (switch! pool-atom new-pool-info)]
     (future (shutdown-pool! old-pool-info strategy))
     old-pool-info))
 
@@ -282,7 +286,7 @@
 
 (defn- cancel-job-id
   [id pool cancel-immediately?]
-  (let [pool-info @(:pool-ref pool)
+  (let [pool-info @(:pool-atom pool)
         jobs-info @(:jobs-ref pool-info)
         job-info (get jobs-info id)]
     (cancel-job job-info cancel-immediately?)))
@@ -305,8 +309,8 @@
   "Returns a set of all current jobs (both scheduled and recurring)
   for the specified pool."
   [pool]
-  (let [pool-ref (:pool-ref pool)
-        jobs     @(:jobs-ref @pool-ref)
+  (let [pool-atom (:pool-atom pool)
+        jobs     @(:jobs-ref @pool-atom)
         jobs     (vals jobs)]
     jobs))
 
