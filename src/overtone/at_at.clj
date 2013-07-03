@@ -55,7 +55,16 @@
   []
   (.availableProcessors (Runtime/getRuntime)))
 
+(declare job-string)
 
+(defn- wrap-fun-with-exception-handler
+  [fun job-info-prom]
+  (fn [& args]
+    (try
+      (apply fun args)
+      (catch Exception e
+        (println (str e " thrown by at-at task: " (job-string @job-info-prom)))
+        (throw e)))))
 
 (defn- schedule-job
   "Schedule the fun to execute periodically in pool-info's pool with the
@@ -64,6 +73,8 @@
   (let [initial-delay (long initial-delay)
         ms-period     (long ms-period)
         ^ScheduledThreadPoolExecutor t-pool (:thread-pool pool-info)
+        job-info-prom (promise)
+        ^Callable fun (wrap-fun-with-exception-handler fun job-info-prom)
         job           (if interspaced?
                         (.scheduleWithFixedDelay t-pool
                                                  fun
@@ -77,19 +88,21 @@
                                               TimeUnit/MILLISECONDS))
         start-time    (System/currentTimeMillis)
         jobs-ref      (:jobs-ref pool-info)
-        id-count-ref  (:id-count-ref pool-info)]
-    (dosync
-     (let [id       (commute id-count-ref inc)
-           job-info (RecurringJob. id
-                                   start-time
-                                   ms-period
-                                   initial-delay
-                                   job
-                                   pool-info
-                                   desc
-                                   (atom true))]
-       (commute jobs-ref assoc id job-info)
-       job-info))))
+        id-count-ref  (:id-count-ref pool-info)
+        job-info      (dosync
+                        (let [id       (commute id-count-ref inc)
+                              job-info (RecurringJob. id
+                                                      start-time
+                                                      ms-period
+                                                      initial-delay
+                                                      job
+                                                      pool-info
+                                                      desc
+                                                      (atom true))]
+                          (commute jobs-ref assoc id job-info)
+                          job-info))]
+    (deliver job-info-prom job-info)
+    job-info))
 
 (defn- wrap-fun-to-remove-itself
   [fun jobs-ref job-info-prom]
@@ -109,8 +122,10 @@
   (let [initial-delay (long initial-delay)
         ^ScheduledThreadPoolExecutor t-pool (:thread-pool pool-info)
         jobs-ref      (:jobs-ref pool-info)
-        id-prom       (promise)
-        ^Callable fun (wrap-fun-to-remove-itself fun jobs-ref id-prom)
+        job-info-prom (promise)
+        ^Callable fun (-> fun
+                          (wrap-fun-with-exception-handler job-info-prom)
+                          (wrap-fun-to-remove-itself jobs-ref job-info-prom))
         job           (.schedule t-pool fun initial-delay TimeUnit/MILLISECONDS)
         start-time    (System/currentTimeMillis)
         id-count-ref  (:id-count-ref pool-info)
@@ -125,7 +140,7 @@
                                                      (atom true))]
                          (commute jobs-ref assoc id job-info)
                          job-info))]
-    (deliver id-prom job-info)
+    (deliver job-info-prom job-info)
     job-info))
 
 (defn- shutdown-pool-now!
