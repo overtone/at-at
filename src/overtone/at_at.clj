@@ -64,6 +64,7 @@
       (apply fun args)
       (catch Exception e
         (println (str e " thrown by at-at task: " (job-string @job-info-prom)))
+        (.printStackTrace e)
         (throw e)))))
 
 (defn- schedule-job
