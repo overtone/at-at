@@ -35,41 +35,57 @@ Simple ahead-of-time function scheduler. Allows you to schedule the execution of
 
 First pull in the lib:
 
-    (use 'overtone.at-at)
+```clj
+(use 'overtone.at-at)
+```
 
 `at-at` uses `ScheduledThreadPoolExecutor`s behind the scenes which use a thread pool to run the scheduled tasks. You therefore need create a pool before you can get going:
 
-    (def my-pool (mk-pool))
+```clj
+(def my-pool (mk-pool))
+```
 
 It is possible to pass in extra options `:cpu-count`, `:stop-delayed?` and `:stop-periodic?` to further configure your pool. See `mk-pool`'s docstring for further info.
 
 Next, schedule the function of your dreams. Here we schedule the function to execute in 1000 ms from now (i.e. 1 second):
 
-    (at (+ 1000 (now)) #(println "hello from the past!") my-pool)
+```clj
+(at (+ 1000 (now)) #(println "hello from the past!") my-pool)
+```
 
 You may also specify a description for the scheduled task with the optional `:desc` key.
 
 Another way of achieving the same result is to use `after` which takes a delaty time in ms from now:
 
-    (after 1000 #(println "hello from the past!") my-pool)
+```clj
+(after 1000 #(println "hello from the past!") my-pool)
+```
 
 You can also schedule functions to occur periodically. Here we schedule the function to execute every second:
 
-    (every 1000 #(println "I am cool!") my-pool)
+```clj
+(every 1000 #(println "I am cool!") my-pool)
+```
 
 This returns a shceduled-fn which may easily be stopped `stop`:
 
-    (stop *1)
+```clj
+(stop *1)
+```
 
 Or more forcefully killed with `kill`.
 
 It's also possible to start a periodic repeating fn with an inital delay:
 
-    (every 1000 #(println "I am cool!") my-pool :initial-delay 2000)
+```cj
+(every 1000 #(println "I am cool!") my-pool :initial-delay 2000)
+```
 
 Finally, you can also schedule tasks for a fixed delay (vs a rate):
 
-    (every 1000 #(println "I am cool!") my-pool :fixed-delay true)
+```clj
+(every 1000 #(println "I am cool!") my-pool :fixed-delay true)
+```
 
 This means that it will wait 1000 ms after the task is completed before 
 starting the next one.
@@ -78,23 +94,28 @@ starting the next one.
 
 When necessary it's possible to stop and reset a given pool:
 
-    (stop-and-reset-pool! my-pool)
+```clj
+(stop-and-reset-pool! my-pool)
+```
 
 You may forcefully reset the pool using the `:kill` strategy:
 
-    (stop-and-reset-pool! my-pool :strategy :kill)
+```clj
+(stop-and-reset-pool! my-pool :strategy :kill)
+```
 
 ### Viewing running scheduled tasks.
 
 `at-at` keeps an eye on all the tasks you've scheduled. You can get a set of the current jobs (both scheduled and recurring) using `scheduled-jobs` and you can pretty-print a list of these job using `show-schedule`. The ids shown in the output of `show-schedule` are also accepted in `kill` and `stop`, provided you also specify the associated pool. See the `kill` and `stop` docstrings for more information.
 
-    (def tp (mk-pool))
-    (after 10000 #(println "hello") tp :desc "Hello printer")
-    (every 5000 #(println "I am still alive!") tp :desc "Alive task")
-    (show-schedule tp)
-
-      [6][RECUR] created: Thu 12:03:35s, period: 5000ms,  desc: "Alive task
-      [5][SCHED] created: Thu 12:03:32s, starts at: Thu 12:03:42s, desc: "Hello printer
+```clj
+(def tp (mk-pool))
+(after 10000 #(println "hello") tp :desc "Hello printer")
+(every 5000 #(println "I am still alive!") tp :desc "Alive task")
+(show-schedule tp)
+;; [6][RECUR] created: Thu 12:03:35s, period: 5000ms,  desc: "Alive task
+;; [5][SCHED] created: Thu 12:03:32s, starts at: Thu 12:03:42s, desc: "Hello printer
+```
 
 ### Install
 
