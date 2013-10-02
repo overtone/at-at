@@ -67,7 +67,7 @@ You can also schedule functions to occur periodically. Here we schedule the func
 (every 1000 #(println "I am cool!") my-pool)
 ```
 
-This returns a shceduled-fn which may easily be stopped `stop`:
+This returns a scheduled-fn which may easily be stopped `stop`:
 
 ```clj
 (stop *1)
@@ -77,7 +77,7 @@ Or more forcefully killed with `kill`.
 
 It's also possible to start a periodic repeating fn with an inital delay:
 
-```cj
+```clj
 (every 1000 #(println "I am cool!") my-pool :initial-delay 2000)
 ```
 
