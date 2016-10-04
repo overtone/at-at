@@ -84,7 +84,7 @@ It's also possible to start a periodic repeating fn with an inital delay:
 Finally, you can also schedule tasks for a fixed delay (vs a rate):
 
 ```clj
-(every 1000 #(println "I am cool!") my-pool :fixed-delay true)
+(interspaced 1000 #(println "I am cool!") my-pool)
 ```
 
 This means that it will wait 1000 ms after the task is completed before 
