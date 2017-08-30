@@ -75,7 +75,7 @@ This returns a scheduled-fn which may easily be stopped `stop`:
 
 Or more forcefully killed with `kill`.
 
-It's also possible to start a periodic repeating fn with an inital delay:
+It's also possible to start a periodic repeating fn with an initial delay:
 
 ```clj
 (every 1000 #(println "I am cool!") my-pool :initial-delay 2000)
