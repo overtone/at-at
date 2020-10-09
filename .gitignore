@@ -6,3 +6,6 @@ lib
 classes
 build
 /at-at
+.lein-failures
+.lein-repl-history
+target

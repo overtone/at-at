@@ -2,6 +2,8 @@
   (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit ThreadPoolExecutor]
            [java.io Writer]))
 
+(set! *warn-on-reflection* true)
+
 (defrecord PoolInfo [thread-pool jobs-ref id-count-ref])
 (defrecord MutablePool [pool-atom])
 (defrecord RecurringJob [id created-at ms-period initial-delay job pool-info desc scheduled?])
@@ -131,7 +133,7 @@
 (defn- shutdown-pool-now!
   "Shut the pool down NOW!"
   [pool-info]
-  (.shutdownNow (:thread-pool pool-info))
+  (.shutdownNow ^ScheduledThreadPoolExecutor (:thread-pool pool-info))
   (doseq [job (vals @(:jobs-ref pool-info))]
     (reset! (:scheduled? job) false)))
 
@@ -139,17 +141,16 @@
   "Shut the pool down gracefully - waits until all previously
   submitted jobs have completed"
   [pool-info]
-  (.shutdown (:thread-pool pool-info))
+  (.shutdown ^ScheduledThreadPoolExecutor (:thread-pool pool-info))
   (let [jobs (vals @(:jobs-ref pool-info))]
     (future
       (loop [jobs jobs]
         (doseq [job jobs]
           (when (and @(:scheduled? job)
-                     (or
-                      (.isCancelled (:job job))
-                      (.isDone (:job job))))
-            (reset! (:scheduled? job) false)))
-
+                      (or
+                       (.isCancelled ^java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask (:job job))
+                       (.isDone ^java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask (:job job))))
+               (reset! (:scheduled? job) false)))
         (when-let [jobs (filter (fn [j] @(:scheduled? j)) jobs)]
           (Thread/sleep 500)
           (when (seq jobs)
@@ -229,7 +230,7 @@
       pool
       :desc \"Message from the past\") ;=> prints 1s from now"
   [delay-ms fun pool & {:keys [desc]
-                       :or {desc ""}}]
+                        :or {desc ""}}]
   (let [pool-info  @(:pool-atom pool)]
     (schedule-at pool-info fun delay-ms desc)))
 
@@ -276,7 +277,7 @@
           pool-info (:pool-info job-info)
           pool      (:thread-pool pool-info)
           jobs-ref  (:jobs-ref pool-info)]
-      (.cancel job cancel-immediately?)
+      (.cancel ^java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask job cancel-immediately?)
       (reset! (:scheduled? job-info) false)
       (dosync
        (let [job (get @jobs-ref id)]
@@ -344,8 +345,8 @@
 (defn show-schedule
   "Pretty print all of the pool's scheduled jobs"
   ([pool]
-     (let [jobs (scheduled-jobs pool)]
-       (if (empty? jobs)
-         (println "No jobs are currently scheduled.")
-         (dorun
-          (map #(println (job-string %)) jobs))))))
+   (let [jobs (scheduled-jobs pool)]
+     (if (empty? jobs)
+       (println "No jobs are currently scheduled.")
+       (dorun
+        (map #(println (job-string %)) jobs))))))
