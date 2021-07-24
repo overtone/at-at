@@ -1,6 +1,7 @@
 (ns overtone.at-at
   (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit ThreadPoolExecutor Future]
-           [java.io Writer]))
+           [java.io Writer])
+  (:gen-class))
 
 (defrecord PoolInfo [thread-pool jobs-ref id-count-ref])
 (defrecord MutablePool [pool-atom])

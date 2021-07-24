@@ -31,6 +31,8 @@
 
 Simple ahead-of-time function scheduler. Allows you to schedule the execution of an anonymous function for a point in the future.
 
+> This is a graalvm compatible fork of the original [`overtone/at-at`](https://github.com/overtone/at-at) repo.
+
 ### Basic Usage
 
 First pull in the lib:
@@ -131,6 +133,6 @@ at-at was extracted from the awesome music making wonder that is Overtone (http:
 * Sam Aaron
 * Jeff Rose
 * Michael Neale
-
+* Alexander Oloo
 
 (Ascii art borrowed from http://www.sanitarium.net/jokes/getjoke.cgi?132)
