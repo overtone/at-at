@@ -1,4 +1,5 @@
 (ns overtone.at-at
+  (:require [clojure.pprint :as pprint])
   (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit ThreadPoolExecutor]
            [java.io Writer]))
 
@@ -39,6 +40,11 @@
                  ", initial-delay: " (:initial-delay obj)
                  ", desc: \"" (:desc obj) "\""
                  ", scheduled? " @(:scheduled? obj) ">")))
+
+(defmethod pprint/simple-dispatch PoolInfo [this] (pr this))
+(defmethod pprint/simple-dispatch MutablePool [this] (pr this))
+(defmethod pprint/simple-dispatch RecurringJob [this] (pr this))
+(defmethod pprint/simple-dispatch ScheduledJob [this] (pr this))
 
 (defn- switch!
   "Sets the value of atom to new-val. Similar to reset! except returns the
