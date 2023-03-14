@@ -176,7 +176,7 @@
 (defn every
   "Calls fun every ms-period, and takes an optional initial-delay for
   the first call in ms.  Returns a scheduled-fn which may be cancelled
-  with cancel.
+  with stop / kill.
 
   Default options are
   {:initial-delay 0 :desc \"\"}"
@@ -190,7 +190,7 @@
    call of fun will happen ms-period milliseconds after the completion
    of the previous call. Also takes an optional initial-delay for the
    first call in ms. Returns a scheduled-fn which may be cancelled with
-   cancel.
+   stop / kill.
 
    Default options are
    {:initial-delay 0 :desc \"\"}"
