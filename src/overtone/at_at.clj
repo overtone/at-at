@@ -3,9 +3,10 @@
    [clojure.pprint :as pprint])
   (:import
    (java.io Writer)
-   (java.util.concurrent ScheduledThreadPoolExecutor
-                         TimeUnit
-                         ThreadPoolExecutor)))
+   (java.util.concurrent Future
+                         ScheduledThreadPoolExecutor
+                         ThreadPoolExecutor
+                         TimeUnit)))
 
 (defrecord PoolInfo [thread-pool jobs-ref id-count-ref])
 (defrecord MutablePool [pool-atom])
@@ -303,7 +304,7 @@
           pool-info (:pool-info job-info)
           pool      (:thread-pool pool-info)
           jobs-ref  (:jobs-ref pool-info)]
-      (.cancel  ^Future job cancel-immediately?)
+      (.cancel ^Future job cancel-immediately?)
       (reset! (:scheduled? job-info) false)
       (dosync
        (let [job (get @jobs-ref id)]
