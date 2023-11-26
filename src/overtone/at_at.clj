@@ -1,7 +1,11 @@
 (ns overtone.at-at
-  (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit ThreadPoolExecutor Future]
-           [java.io Writer])
-  (:gen-class))
+  (:require
+   [clojure.pprint :as pprint])
+  (:import
+   (java.io Writer)
+   (java.util.concurrent ScheduledThreadPoolExecutor
+                         TimeUnit
+                         ThreadPoolExecutor)))
 
 (defrecord PoolInfo [thread-pool jobs-ref id-count-ref])
 (defrecord MutablePool [pool-atom])
@@ -13,16 +17,33 @@
   [date]
   (.format (java.text.SimpleDateFormat. "EEE hh':'mm':'ss's'") date))
 
+(defmethod pprint/simple-dispatch PoolInfo [obj]
+  (println (str "#<PoolInfo: " (:thread-pool obj) " "
+                (count @(:jobs-ref obj)) " jobs>")))
+
 (defmethod print-method PoolInfo
   [obj ^Writer w]
   (.write w (str "#<PoolInfo: " (:thread-pool obj) " "
                  (count @(:jobs-ref obj)) " jobs>")))
+
+(defmethod pprint/simple-dispatch MutablePool [obj]
+  (println (str "#<MutablePool - "
+                "jobs: "(count @(:jobs-ref @(:pool-atom obj)))
+                ">")))
 
 (defmethod print-method MutablePool
   [obj ^Writer w]
   (.write w (str "#<MutablePool - "
                  "jobs: "(count @(:jobs-ref @(:pool-atom obj)))
                  ">")))
+
+(defmethod pprint/simple-dispatch RecurringJob [obj]
+  (println (str "#<RecurringJob id: " (:id obj)
+                ", created-at: " (format-date (:created-at obj))
+                ", ms-period: " (:ms-period obj)
+                ", initial-delay: " (:initial-delay obj)
+                ", desc: \"" (:desc obj) "\""
+                ", scheduled? " @(:scheduled? obj) ">")))
 
 (defmethod print-method RecurringJob
   [obj ^Writer w]
@@ -32,6 +53,13 @@
                  ", initial-delay: " (:initial-delay obj)
                  ", desc: \"" (:desc obj) "\""
                  ", scheduled? " @(:scheduled? obj) ">")))
+
+(defmethod pprint/simple-dispatch ScheduledJob [obj]
+  (println (str "#<ScheduledJob id: " (:id obj)
+                ", created-at: " (format-date (:created-at obj))
+                ", initial-delay: " (:initial-delay obj)
+                ", desc: \"" (:desc obj) "\""
+                ", scheduled? " @(:scheduled? obj) ">")))
 
 (defmethod print-method ScheduledJob
   [obj ^Writer w]
@@ -55,8 +83,6 @@
   "Returns the number of CPUs on this machine."
   []
   (.availableProcessors (Runtime/getRuntime)))
-
-
 
 (defn- schedule-job
   "Schedule the fun to execute periodically in pool-info's pool with the
