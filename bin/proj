@@ -1,0 +1,14 @@
+#!/usr/bin/env bb
+
+(ns proj (:require [lioss.main :as lioss]))
+
+(lioss/main
+ {:license        :epl
+  :group-id       "overtone"
+  :inception-year 2011
+  :description    "Ahead-of-time function scheduler."})
+
+
+;; Local Variables:
+;; mode:clojure
+;; End:
