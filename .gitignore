@@ -6,3 +6,10 @@ lib
 classes
 build
 /at-at
+/target
+pom.xml.asc
+*.class
+/.lein-*
+/.nrepl-port
+.hgignore
+.hg/
