@@ -1,4 +1,17 @@
-# at-at Changelog
+# Unreleased
+
+- Add exception handling through `uncaught-exception-handler`
+- Make our thread pool threads recognizable by adding `at-at` to the thread name
+- Add pprint handlers for records
+- Add type hints to avoid reflection, and to be Babashka/GraalVM compatible
+- Make `shutdown-pool!` public
+
+## 1.2.0
+_28th May 2013_
+
+* BREAKING CHANGE - Remove support for specifying stop-delayed? and
+  stop-periodic? scheduler strategies.
+* Jobs now correctly report as no longer being scheduled when pool is shutdown.
 
 ## 1.1.0
 _14th Jan 2013_
@@ -7,9 +20,3 @@ _14th Jan 2013_
   specified interspacing.
 * Added missing trailing quotes when printing schedule.
 
-## 1.2.0
-_28th May 2013_
-
-* BREAKING CHANGE - Remove support for specifying stop-delayed? and
-  stop-periodic? scheduler strategies.
-* Jobs now correctly report as no longer being scheduled when pool is shutdown.

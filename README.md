@@ -29,9 +29,29 @@
 
 ### at-at
 
+<!-- badges -->
+[![cljdoc badge](https://cljdoc.org/badge/overtone/at-at)](https://cljdoc.org/d/overtone/at-at) [![Clojars Project](https://img.shields.io/clojars/v/overtone/at-at.svg)](https://clojars.org/overtone/at-at)
+<!-- /badges -->
+
 Simple ahead-of-time function scheduler. Allows you to schedule the execution of an anonymous function for a point in the future.
 
 > This is a graalvm compatible fork of the original [`overtone/at-at`](https://github.com/overtone/at-at) repo.
+
+<!-- installation -->
+## Installation
+
+To use the latest release, add the following to your `deps.edn` ([Clojure CLI](https://clojure.org/guides/deps_and_cli))
+
+```
+overtone/at-at {:mvn/version "0.0.0"}
+```
+
+or add the following to your `project.clj` ([Leiningen](https://leiningen.org/))
+
+```
+[overtone/at-at "0.0.0"]
+```
+<!-- /installation -->
 
 ### Basic Usage
 
@@ -119,10 +139,6 @@ You may forcefully reset the pool using the `:kill` strategy:
 ;; [5][SCHED] created: Thu 12:03:32s, starts at: Thu 12:03:42s, desc: "Hello printer"
 ```
 
-### Install
-
-Fetch at-at from github: https://github.com/overtone/at-at or pull from clojars: `[overtone/at-at "X.Y.Z"]`
-
 ### History
 
 at-at was extracted from the awesome music making wonder that is Overtone (http://github.com/overtone/overtone)
@@ -133,5 +149,16 @@ at-at was extracted from the awesome music making wonder that is Overtone (http:
 * Jeff Rose
 * Michael Neale
 * Alexander Oloo
+* Arne Brasseur
+* Daniel MacDougall 
+* Josh Comer
 
 (Ascii art borrowed from http://www.sanitarium.net/jokes/getjoke.cgi?132)
+
+<!-- license -->
+## License
+
+Copyright &copy; 2011-2023 Sam Aaron, Jeff Rose, and contributors
+
+Available under the terms of the Eclipse Public License 1.0, see LICENSE.txt
+<!-- /license -->
