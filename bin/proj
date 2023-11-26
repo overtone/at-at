@@ -5,6 +5,9 @@
 (lioss/main
  {:license        :epl
   :group-id       "overtone"
+  :gh-project     "overtone/at-at"
+  :org-name       "Overtone"
+  :org-url        "https://overtone.github.io/"
   :inception-year 2011
   :description    "Ahead-of-time function scheduler."})
 
