@@ -1,5 +1,4 @@
 .cake
-pom.xml
 *.jar
 *.war
 lib
@@ -13,3 +12,4 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+.cpcache
