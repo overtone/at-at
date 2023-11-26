@@ -43,13 +43,13 @@ Simple ahead-of-time function scheduler. Allows you to schedule the execution of
 To use the latest release, add the following to your `deps.edn` ([Clojure CLI](https://clojure.org/guides/deps_and_cli))
 
 ```
-overtone/at-at {:mvn/version "0.0.0"}
+overtone/at-at {:mvn/version "1.3.58"}
 ```
 
 or add the following to your `project.clj` ([Leiningen](https://leiningen.org/))
 
 ```
-[overtone/at-at "0.0.0"]
+[overtone/at-at "1.3.58"]
 ```
 <!-- /installation -->
 

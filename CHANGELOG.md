@@ -1,4 +1,4 @@
-# Unreleased
+# 1.3.58 (2023-11-26 / cc6975b)
 
 - Add exception handling through `uncaught-exception-handler`
 - Make our thread pool threads recognizable by adding `at-at` to the thread name
@@ -19,4 +19,3 @@ _14th Jan 2013_
 * Added new fn `interspaced` which will call fun repeatedly with a
   specified interspacing.
 * Added missing trailing quotes when printing schedule.
-
