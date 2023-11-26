@@ -3,10 +3,17 @@
    [clojure.pprint :as pprint])
   (:import
    (java.io Writer)
-   (java.util.concurrent Future
-                         ScheduledThreadPoolExecutor
-                         ThreadPoolExecutor
-                         TimeUnit)))
+   (java.util.concurrent Executors Future ScheduledThreadPoolExecutor ThreadFactory ThreadPoolExecutor TimeUnit)))
+
+(declare job-string)
+
+(defn uncaught-exception-handler
+  "Called when a scheduled function throws. Use `alter-var-root` to customize
+  this."
+  [throwable job]
+  (println (str throwable " thrown by at-at task: " (job-string job)))
+  (.printStackTrace throwable)
+  (throw throwable))
 
 (defrecord PoolInfo [thread-pool jobs-ref id-count-ref])
 (defrecord MutablePool [pool-atom])
@@ -85,16 +92,13 @@
   []
   (.availableProcessors (Runtime/getRuntime)))
 
-(declare job-string)
-
 (defn- wrap-fun-with-exception-handler
   [fun job-info-prom]
   (fn [& args]
     (try
       (apply fun args)
-      (catch Exception e
-        (println (str e " thrown by at-at task: " (job-string @job-info-prom)))
-        (throw e)))))
+      (catch Throwable t
+        (uncaught-exception-handler t @job-info-prom)))))
 
 (defn- schedule-job
   "Schedule the fun to execute periodically in pool-info's pool with the
@@ -203,7 +207,14 @@
 (defn- mk-sched-thread-pool
   "Create a new scheduled thread pool containing num-threads threads."
   [num-threads]
-  (let [t-pool (ScheduledThreadPoolExecutor. num-threads)]
+  (let [thread-factory (Executors/defaultThreadFactory)
+        t-pool (ScheduledThreadPoolExecutor.
+                num-threads
+                (reify ThreadFactory
+                  (newThread [this runnable]
+                    (let [thread (.newThread thread-factory runnable)]
+                      (.setName thread (str "at-at-" (.getName thread)))
+                      thread))))]
     t-pool))
 
 (defn- mk-pool-info
@@ -371,14 +382,16 @@
        "[RECUR] created: " (format-date (:created-at job))
        (format-start-time (+ (:created-at job) (:initial-delay job)))
        ", period: " (:ms-period job) "ms"
-       ",  desc: \""(:desc job) "\""))
+       (when (not= "" (:desc job))
+         (str ", desc: \"" (:desc job) "\""))))
 
 (defn- scheduled-job-string
   [job]
   (str "[" (:id job) "]"
        "[SCHED] created: " (format-date (:created-at job))
        (format-start-time (+ (:created-at job) (:initial-delay job)))
-       ", desc: \"" (:desc job) "\""))
+       (when (not= "" (:desc job))
+         (str ", desc: \"" (:desc job) "\""))))
 
 (defn- job-string
   [job]
