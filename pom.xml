@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>overtone</groupId>
   <artifactId>at-at</artifactId>
-  <version>0.0.51</version>
+  <version>1.3.58</version>
   <name>at-at</name>
   <description>Ahead-of-time function scheduler.</description>
-  <url>https://github.com/lambdaisland/at-at</url>
+  <url>https://github.com/overtone/at-at</url>
   <inceptionYear>2011</inceptionYear>
   <organization>
-    <name>Lambda Island</name>
-    <url>https://lambdaisland.com</url>
+    <name>Overtone</name>
+    <url>https://overtone.github.io/</url>
   </organization>
   <properties>
     <project class="build sourceEncoding">UTF-8</project>
@@ -22,10 +22,10 @@
     </license>
   </licenses>
   <scm>
-    <url>https://github.com/lambdaisland/at-at</url>
-    <connection>scm:git:git://github.com/lambdaisland/at-at.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/lambdaisland/at-at.git</developerConnection>
-    <tag>797011be61c92d3e6578e6fcff49fd39eef11b64</tag>
+    <url>https://github.com/overtone/at-at</url>
+    <connection>scm:git:git://github.com/overtone/at-at.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/overtone/at-at.git</developerConnection>
+    <tag>2031fa1e9ac1075193002c471eb8e497fca7445e</tag>
   </scm>
   <dependencies></dependencies>
   <build>
@@ -52,7 +52,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>797011be61c92d3e6578e6fcff49fd39eef11b64</git-revision>
+              <git-revision>2031fa1e9ac1075193002c471eb8e497fca7445e</git-revision>
             </manifestEntries>
           </archive>
         </configuration>

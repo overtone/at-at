@@ -1,3 +1,11 @@
+# Unreleased
+
+## Added
+
+## Fixed
+
+## Changed
+
 # 1.3.58 (2023-11-26 / cc6975b)
 
 - Add exception handling through `uncaught-exception-handler`
