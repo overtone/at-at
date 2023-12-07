@@ -141,6 +141,14 @@ You may forcefully reset the pool using the `:kill` strategy:
 
 at-at was extracted from the awesome music making wonder that is Overtone (http://github.com/overtone/overtone)
 
+### Release Tooling
+
+This project uses the Lambda Island release tooling. See `bin/proj --help` for options. To release a new version to Clojars:
+
+```
+bin/proj release
+```
+
 ### Authors
 
 * Sam Aaron
