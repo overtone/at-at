@@ -1,10 +1,6 @@
 # Unreleased
 
-## Added
-
-## Fixed
-
-## Changed
+- Fix reflection warnings
 
 # 1.3.58 (2023-11-26 / cc6975b)
 
