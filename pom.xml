@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>overtone</groupId>
   <artifactId>at-at</artifactId>
-  <version>1.3.58</version>
+  <version>1.4.65</version>
   <name>at-at</name>
   <description>Ahead-of-time function scheduler.</description>
   <url>https://github.com/overtone/at-at</url>
@@ -25,7 +25,7 @@
     <url>https://github.com/overtone/at-at</url>
     <connection>scm:git:git://github.com/overtone/at-at.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/overtone/at-at.git</developerConnection>
-    <tag>2031fa1e9ac1075193002c471eb8e497fca7445e</tag>
+    <tag>49311157d219469dfb81ea3170977c4216fd2b46</tag>
   </scm>
   <dependencies></dependencies>
   <build>
@@ -52,7 +52,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>2031fa1e9ac1075193002c471eb8e497fca7445e</git-revision>
+              <git-revision>49311157d219469dfb81ea3170977c4216fd2b46</git-revision>
             </manifestEntries>
           </archive>
         </configuration>
