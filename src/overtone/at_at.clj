@@ -10,7 +10,7 @@
 (defn uncaught-exception-handler
   "Called when a scheduled function throws. Use `alter-var-root` to customize
   this."
-  [throwable job]
+  [^Throwable throwable job]
   (println (str throwable " thrown by at-at task: " (job-string job)))
   (.printStackTrace throwable)
   (throw throwable))
@@ -206,7 +206,7 @@
 
 (defn- mk-sched-thread-pool
   "Create a new scheduled thread pool containing num-threads threads."
-  [num-threads]
+  [^Long num-threads]
   (let [thread-factory (Executors/defaultThreadFactory)
         t-pool (ScheduledThreadPoolExecutor.
                 num-threads
